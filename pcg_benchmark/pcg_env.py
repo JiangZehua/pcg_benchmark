@@ -283,15 +283,21 @@ class PCGEnv:
     Returns:
         any|any[]: a rendered representaion for each of the input content which can be string, image, video, image sequence, etc.
     """
-    def render(self, contents):
+    def render(self, contents, infos=None):
         single_input = False
         if self.content_space.isSampled(contents):
             contents = [contents]
             single_input = True
 
         result = []
-        for c in contents:
-            result.append(self._problem.render(c))
+
+        if infos:
+            for c, info in zip(contents, infos):
+                result.append(self._problem.render(c, info))
+
+        else:
+            for c in contents:
+                result.append(self._problem.render(c))
         
         if single_input:
             return result[0]

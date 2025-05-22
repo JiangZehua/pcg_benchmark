@@ -182,6 +182,28 @@ def get_longest_path(maze, tile_values):
             final_value = max_value
     return final_value
 
+
+def get_longest_path_and_coords(maze, tile_values):
+    empty_tiles = _get_certain_tiles(maze, tile_values)
+    final_visited_map = np.zeros((maze.shape[0], maze.shape[1]))
+    final_value = 0
+    coords_list = []
+    for (x,y) in empty_tiles:
+        if final_visited_map[y][x] > 0:
+            continue
+        dijkstra_map, visited_map = _run_dijkstra(x, y, maze, tile_values)
+        final_visited_map += visited_map
+        (my,mx) = np.unravel_index(np.argmax(dijkstra_map, axis=None), dijkstra_map.shape)
+        dijkstra_map, _ = _run_dijkstra(mx, my, maze, tile_values)
+        max_value = np.max(dijkstra_map)
+        if max_value > final_value:
+            final_value = max_value
+            # coords = np.argwhere(dijkstra_map != -1)
+            # coords_list = [tuple(coord) for coord in coords]
+            # will not do the path finding here because will slow down the training, 
+            # will just return the d_map here and do the path retrieving in the rendering function
+            d_map = dijkstra_map
+    return final_value, d_map
 """
 Get the distance between two points in a maze
 
