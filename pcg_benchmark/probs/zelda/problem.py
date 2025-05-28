@@ -107,7 +107,7 @@ class ZeldaProblem(Problem):
         key_door = get_range_reward(info["key_door"], 0, control["key_door"]-self._cerror, control["key_door"]+self._cerror, int(self._width * self._height / 4))
         return (player_key + key_door) / 2
     
-    def render(self, content):
+    def render(self, content, info=None):
         scale = 16
         graphics = [
             Image.open(os.path.dirname(__file__) + "/images/solid.png").convert('RGBA'),
@@ -116,10 +116,27 @@ class ZeldaProblem(Problem):
             Image.open(os.path.dirname(__file__) + "/images/key.png").convert('RGBA'),
             Image.open(os.path.dirname(__file__) + "/images/door.png").convert('RGBA'),
             Image.open(os.path.dirname(__file__) + "/images/bat.png").convert('RGBA'),
+            Image.open(os.path.dirname(__file__) + "/images/pkpath.png").convert('RGBA'),  # used for player-key path
+            Image.open(os.path.dirname(__file__) + "/images/kdpath.png").convert('RGBA'),  # used for key-door path
         ]
         lvl = np.pad(np.array(content), 1)
         lvl_image = Image.new("RGBA", (lvl.shape[1]*scale, lvl.shape[0]*scale), (0,0,0,255))
         for y in range(lvl.shape[0]):
             for x in range(lvl.shape[1]):
                 lvl_image.paste(graphics[lvl[y][x]], (x*scale, y*scale, (x+1)*scale, (y+1)*scale))
+        
+        if info is not None:
+            # Draw the player key path
+            if info["pk_path"]:
+                for coord in info["pk_path"]:
+                    y, x = coord
+                    # add +1 to x and y to account for the padding
+                    lvl_image.paste(graphics[6], ((x+1)*scale, (y+1)*scale, (x+2)*scale, (y+2)*scale))
+            # Draw the key door path
+            if info["kd_path"]:
+                for coord in info["kd_path"]:
+                    y, x = coord
+                    # add +1 to x and y to account for the padding
+                    lvl_image.paste(graphics[7], ((x+1)*scale, (y+1)*scale, (x+2)*scale, (y+2)*scale))
+
         return lvl_image

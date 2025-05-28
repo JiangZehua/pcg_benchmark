@@ -287,6 +287,7 @@ class PCGEnv:
         single_input = False
         if self.content_space.isSampled(contents):
             contents = [contents]
+            infos = [infos]
             single_input = True
 
         result = []
