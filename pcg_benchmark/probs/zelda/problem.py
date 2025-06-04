@@ -131,12 +131,15 @@ class ZeldaProblem(Problem):
                 for coord in info["pk_path"]:
                     y, x = coord
                     # add +1 to x and y to account for the padding
-                    lvl_image.paste(graphics[6], ((x+1)*scale, (y+1)*scale, (x+2)*scale, (y+2)*scale))
+                    # lvl_image.paste(graphics[6], ((x+1)*scale, (y+1)*scale, (x+2)*scale, (y+2)*scale))
+                    lvl_image.paste(graphics[6], ((x+1)*scale, (y+1)*scale, (x+2)*scale, (y+2)*scale), mask=graphics[6])
+
             # Draw the key door path
             if info["kd_path"]:
                 for coord in info["kd_path"]:
                     y, x = coord
                     # add +1 to x and y to account for the padding
-                    lvl_image.paste(graphics[7], ((x+1)*scale, (y+1)*scale, (x+2)*scale, (y+2)*scale))
+                    # lvl_image.paste(graphics[7], ((x+1)*scale, (y+1)*scale, (x+2)*scale, (y+2)*scale))
+                    lvl_image.paste(graphics[7], ((x+1)*scale, (y+1)*scale, (x+2)*scale, (y+2)*scale), mask=graphics[7])
 
         return lvl_image

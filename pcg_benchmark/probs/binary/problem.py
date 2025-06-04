@@ -50,7 +50,6 @@ class BinaryProblem(Problem):
         longest = get_range_reward(info["path"], 0, control["path"]-self._cerror, control["path"]+self._cerror, self._width * self._height)
         return longest
     
-
     def render(self, content, info=None):
         scale = 16
         graphics = [
@@ -59,25 +58,27 @@ class BinaryProblem(Problem):
             Image.open(os.path.join(os.path.dirname(__file__), "images/path.png")).convert('RGBA'),   # enum 2 path
             Image.open(os.path.join(os.path.dirname(__file__), "images/solid.png")).convert('RGBA'),  # enum 3 border
         ]
-        # Use constant_values=3 to pad with border tiles instead of empty tiles
-        lvl = np.pad(np.array(content), 1, constant_values=3)
-        lvl_image = Image.new("RGBA", (lvl.shape[1]*scale, lvl.shape[0]*scale), (0,0,0,255))
-        for y in range(lvl.shape[0]):
-            for x in range(lvl.shape[1]):
-                tile_idx = lvl[y][x]
+
+        # Pad with border tiles
+        padded_content = np.pad(np.array(content), 1, constant_values=3)
+        lvl_image = Image.new("RGBA", (padded_content.shape[1]*scale, padded_content.shape[0]*scale), (0, 0, 0, 255))
+
+        # Draw base tiles
+        for y in range(padded_content.shape[0]):
+            for x in range(padded_content.shape[1]):
+                tile_idx = padded_content[y, x]
                 lvl_image.paste(graphics[tile_idx], (x*scale, y*scale, (x+1)*scale, (y+1)*scale))
 
-        # lvl_image.save('level0debug.png') 
-        if info:
+        # Draw path tiles over the base tiles
+        if info and "d_map" in info:
             d_map = info["d_map"]
             path_coords = get_path_coords(d_map)
 
-            for coord in path_coords:
-                y, x = coord
-                # Add +1 to both coordinates to account for the padding offset
-                lvl_image.paste(graphics[2], ((x+1)*scale, (y+1)*scale, (x+2)*scale, (y+2)*scale))
-        # lvl_image.save('leveldebug.png')
-        # breakpoint()
+            for y, x in path_coords:
+                # Offset +1 due to padding
+                py, px = y + 1, x + 1
+                lvl_image.paste(graphics[2], (px*scale, py*scale, (px+1)*scale, (py+1)*scale), mask=graphics[2])
+
         return lvl_image
 
 def get_path_coords(arr):
