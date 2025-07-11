@@ -196,7 +196,7 @@ def get_longest_path_and_coords(maze, tile_values):
         (my,mx) = np.unravel_index(np.argmax(dijkstra_map, axis=None), dijkstra_map.shape)
         dijkstra_map, _ = _run_dijkstra(mx, my, maze, tile_values)
         max_value = np.max(dijkstra_map)
-        if max_value > final_value:
+        if max_value >= final_value:
             final_value = max_value
             # coords = np.argwhere(dijkstra_map != -1)
             # coords_list = [tuple(coord) for coord in coords]
