@@ -100,6 +100,145 @@ The framework supports multitude of problems that can be found at [`pcg_benchmar
 
 To understand how to add new problems to the framework, please check the main [README.md](pcg_benchmark/probs/README.md) in the probs folder.
 
+## Frozen Tiles System
+The PCG Benchmark now supports a **Frozen Tiles System** that allows you to constrain certain tiles in the map to be unmodifiable during content generation. This is useful for creating templates, preserving specific structures, or ensuring certain design constraints are maintained.
+
+### Key Features
+- **Backward Compatible**: Existing code continues to work without any changes
+- **3 Freezing Options**: Random probability, specific positions, or tile types from reference content
+- **Visual Feedback**: Frozen tiles are rendered with a transparent blue overlay
+- **Problem Agnostic**: Works with all problems in the benchmark
+- **Initialization Only**: Freezing happens only during map initialization, not during training
+
+### The 3 Freezing Options
+
+The system supports exactly 3 freezing options that work during map initialization only:
+
+#### 1. Random Freezing (Based on Probability)
+```python
+from pcg_benchmark.probs.frozen_utils import create_problem_with_frozen_tiles
+from pcg_benchmark.probs.binary.problem import BinaryProblem
+
+# Freeze tiles randomly with 10% probability (default)
+freeze_options = {
+    'random_probability': 0.1,  # 10% of tiles will be frozen
+    'random_seed': 42           # Optional: for reproducible results
+}
+problem = create_problem_with_frozen_tiles(
+    BinaryProblem,
+    freeze_tiles=freeze_options,
+    width=10, height=10
+)
+```
+
+#### 2. Freeze Specific Tile Type at Specific Positions
+```python
+# Freeze specific tile type at given coordinates
+freeze_options = {
+    'tile_type': 1,  # Tile type/value to freeze (e.g., walls)
+    'positions': [(1, 1), (2, 2), (3, 3), (4, 4)]  # Coordinates to freeze
+}
+problem = create_problem_with_frozen_tiles(
+    BinaryProblem,
+    freeze_tiles=freeze_options,
+    width=8, height=8
+)
+```
+
+#### 3. Freeze All Tiles of Specific Types from Reference Content
+```python
+import numpy as np
+
+# Create a reference map with the pattern you want to preserve
+reference_map = np.array([
+    [1, 0, 0, 1, 0, 1],
+    [0, 1, 1, 0, 1, 0],
+    [1, 0, 0, 1, 0, 1],
+    [0, 1, 1, 0, 1, 0]
+])
+
+# Freeze all wall tiles (type 1) from the reference map
+freeze_options = {
+    'tile_types': [1],  # Freeze all tiles with value 1 (walls)
+    'reference_content': reference_map
+}
+problem = create_problem_with_frozen_tiles(
+    BinaryProblem,
+    freeze_tiles=freeze_options,
+    width=6, height=4
+)
+```
+
+#### Backward Compatible Usage (No Freezing)
+```python
+# This behaves exactly like the normal constructor
+problem = create_problem_with_frozen_tiles(
+    BinaryProblem,  # No freeze_tiles parameter = no freezing
+    width=10, height=10
+)
+```
+
+### Key Implementation Details
+
+- **Freezing happens only during initialization**: Once the problem is created, the frozen mask remains constant throughout the entire training/modification process
+- **Frozen tiles preserve their values**: When sampling new content, frozen tiles always keep their original values
+- **Non-frozen tiles remain mutable**: Only non-frozen tiles can be modified during content generation
+- **Backward compatibility**: If no `freeze_tiles` parameter is provided, the problem behaves exactly like the original implementation
+
+### Visualization
+Frozen tiles are automatically rendered with a **transparent blue overlay** when using the `render_with_frozen_tiles` function:
+
+```python
+# Generate and render content
+sample = problem._content_space.sample()
+info = problem.info(sample)
+
+# Normal rendering (no frozen tile indication)
+normal_image = problem.render(sample, info)
+
+# Frozen tile rendering (blue overlay on frozen tiles)
+frozen_image = problem.render_with_frozen_tiles(sample, info)
+
+# Adjust opacity of the blue overlay (0.0 to 1.0)
+light_frozen = problem.render_with_frozen_tiles(sample, info, frozen_opacity=0.2)
+heavy_frozen = problem.render_with_frozen_tiles(sample, info, frozen_opacity=0.6)
+
+# Save or display the images
+frozen_image.save("map_with_frozen_tiles.png")
+frozen_image.show()  # If in interactive environment
+```
+
+#### Advanced Visualization
+
+```python
+from pcg_benchmark.probs.frozen_render import (
+    compare_frozen_vs_normal,
+    render_frozen_mask_only,
+    create_frozen_visualization_legend
+)
+
+# Create side-by-side comparison
+comparison = compare_frozen_vs_normal(problem, sample, info)
+comparison.save("comparison.png")
+
+# Render only the frozen mask
+frozen_mask = problem._content_space.get_frozen_mask()
+mask_image = render_frozen_mask_only(frozen_mask)
+mask_image.save("frozen_mask.png")
+
+# Create a legend explaining the visualization
+legend = create_frozen_visualization_legend()
+legend.save("legend.png")
+```
+
+### Main Functions
+
+- `create_problem_with_frozen_tiles()`: Main function for creating problems with any of the 3 freezing options
+- All 3 freezing options can be used with any problem in the benchmark (Binary, Zelda, Sokoban, etc.)
+
+### Implementation Details
+The frozen tiles system uses a new `FrozenArraySpace` class that extends the existing `ArraySpace` while maintaining full backward compatibility. When sampling content, frozen tiles are preserved according to the specified constraints.
+
 ## Creating a Generator
 You can check the example generators from our paper that you can find in the following repository [https://github.com/amidos2006/benchmark_experiments](https://github.com/amidos2006/benchmark_experiments) inside the [generators folder](https://github.com/amidos2006/benchmark_experiments/tree/main/generators). It contains 3 different generators that were tested in the paper `random` (Random Search), `es` (Mu + Lambda Evolution Strategy), and `ga` (Genetic Algorithm). To create any generator other than these, you usually need a way to navigate the search space. 
 

@@ -1,6 +1,7 @@
 from pcg_benchmark.spaces.float import FloatSpace
 from pcg_benchmark.spaces.integer import IntegerSpace
 from pcg_benchmark.spaces.array import ArraySpace
+from pcg_benchmark.spaces.frozen_array import FrozenArraySpace
 from pcg_benchmark.spaces.generic import GenericSpace
 from pcg_benchmark.spaces.dictionary import DictionarySpace
 import copy

@@ -95,3 +95,20 @@ class Problem:
     """
     def render(self, content):
         raise NotImplementedError("render function is not implemented")
+    
+    """
+    Render the content with frozen tiles highlighted in blue.
+    If the problem doesn't use frozen tiles, behaves the same as render().
+
+    Parameters:
+        content(any): the input content that need to be rendered
+        info(dict, optional): optional info dictionary for optimization
+        scale(int): scale factor for rendering (default 16)
+        frozen_opacity(float): opacity of frozen tile overlay (default 0.3)
+
+    Returns:
+        Image: the rendered image with frozen tiles highlighted
+    """
+    def render_with_frozen_tiles(self, content, info=None, scale=16, frozen_opacity=0.3):
+        from pcg_benchmark.probs.frozen_render import render_with_frozen_tiles
+        return render_with_frozen_tiles(self, content, info, scale, frozen_opacity)

@@ -303,3 +303,36 @@ class PCGEnv:
         if single_input:
             return result[0]
         return result
+    
+    """
+    Generate PIL.Images for each content with frozen tiles highlighted in blue.
+    If the problem doesn't use frozen tiles, behaves the same as render().
+
+    Parameters:
+        contents(any|any[]): a single or an array of the content that need to be rendered
+        infos(any|any[]): optional info dictionaries for optimization
+        scale(int): scale factor for rendering (default 16)
+        frozen_opacity(float): opacity of frozen tile overlay (default 0.3)
+
+    Returns:
+        any|any[]: a rendered representation for each input content with frozen tiles highlighted
+    """
+    def render_with_frozen_tiles(self, contents, infos=None, scale=16, frozen_opacity=0.3):
+        single_input = False
+        if self.content_space.isSampled(contents):
+            contents = [contents]
+            infos = [infos]
+            single_input = True
+
+        result = []
+
+        if infos:
+            for c, info in zip(contents, infos):
+                result.append(self._problem.render_with_frozen_tiles(c, info, scale, frozen_opacity))
+        else:
+            for c in contents:
+                result.append(self._problem.render_with_frozen_tiles(c, None, scale, frozen_opacity))
+        
+        if single_input:
+            return result[0]
+        return result
