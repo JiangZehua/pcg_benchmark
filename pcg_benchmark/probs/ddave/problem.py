@@ -5,15 +5,25 @@ from pcg_benchmark.spaces import ArraySpace, DictionarySpace, IntegerSpace
 import numpy as np
 from PIL import Image
 import os
+from enum import IntEnum
+
+class Tile(IntEnum):
+    SOLID = 0
+    EMPTY = 1
+    PLAYER = 2
+    EXIT = 3
+    DIAMOND = 4
+    KEY = 5
+    SPIKE = 6
 
 def _getLvl(content):
     content = np.array(content)
-    player_locations = _get_certain_tiles(content, [2])
+    player_locations = _get_certain_tiles(content, [Tile.PLAYER])
     if len(player_locations) > 0:
-        regions = get_regions_size(content, player_locations, [1,2,3,4,5,6])
+        regions = get_regions_size(content, player_locations, [Tile.EMPTY, Tile.PLAYER, Tile.EXIT, Tile.DIAMOND, Tile.KEY, Tile.SPIKE])
         loc = player_locations[np.argmax(regions)]
         color_map = np.full(content.shape, -1)
-        _flood_fill(loc[0], loc[1], color_map, content, 1, [1,2,3,4,5,6])
+        _flood_fill(loc[0], loc[1], color_map, content, 1, [Tile.EMPTY, Tile.PLAYER, Tile.EXIT, Tile.DIAMOND, Tile.KEY, Tile.SPIKE])
         color_map[color_map == -1] = 0
         content = content * color_map
     return content

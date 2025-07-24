@@ -6,6 +6,14 @@ from PIL import Image
 import numpy as np
 from difflib import SequenceMatcher
 import os
+from enum import IntEnum
+
+class Tile(IntEnum):
+    SOLID = 0
+    EMPTY = 1
+    PLAYER = 2
+    CRATE = 3
+    TARGET = 4
 
 def _sol2str(content, sol):
     if len(sol) == 0:
@@ -106,9 +114,9 @@ class SokobanProblem(Problem):
 
     def info(self, content):
         content = np.array(content)
-        number_player = get_num_tiles(content, [2])
-        number_crates = get_num_tiles(content, [3])
-        number_targets = get_num_tiles(content, [4])
+        number_player = get_num_tiles(content, [Tile.PLAYER])
+        number_crates = get_num_tiles(content, [Tile.CRATE])
+        number_targets = get_num_tiles(content, [Tile.TARGET])
         heuristic, sol = -1, []
         if number_player == 1 and number_crates > 0 and number_crates == number_targets:
             heuristic, sol = _run_game(content, self._power)
