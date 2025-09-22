@@ -197,8 +197,8 @@ class PCGEnv:
         diversity = np.array(_recursiveDiversity(infos, sim_mat))
 
         if not is_array:
-            return float(diversity[0] >= 1), diversity[0], infos[0]
-        return (diversity >= 1).sum() / len(infos), diversity, infos
+            return float(diversity[0] >= 1), diversity[0], sim_mat, infos[0]
+        return (diversity >= 1).sum() / len(infos), diversity, sim_mat, infos
 
     """
     Calculate the controlability of the provided contents with respect to the provided controls 
@@ -273,7 +273,7 @@ class PCGEnv:
     def evaluate(self, contents, controls=None):
         infos = self.info(contents)
         q_score, quality, _ = self.quality(infos)
-        d_score, diversity, _ = self.diversity(infos)
+        d_score, diversity, sim_mat, _ = self.diversity(infos)
         ct_score, controlability = 0.0, 0.0
         if hasattr(infos, "__len__") and not isinstance(infos, dict):
             controlability = [0.0] * len(infos)
@@ -282,7 +282,8 @@ class PCGEnv:
 
         return q_score, d_score, ct_score, {
             "quality": quality, 
-            "diversity": diversity, 
+            "diversity": diversity,
+            "similarity_matrix": sim_mat,
             "controlability": controlability
         }, infos
     
