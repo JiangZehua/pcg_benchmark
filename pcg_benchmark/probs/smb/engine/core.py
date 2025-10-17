@@ -968,14 +968,14 @@ class MarioWorld:
         self.mario.alive = False
 
     def getSceneObservation(self, centerX, centerY, detail):
-        ret = np.zeroes((MarioGame.tileWidth, MarioGame.tileHeight), dtype=int)
+        ret = np.zeros((int(MarioGame.tileWidth), int(MarioGame.tileHeight)), dtype=int)
         centerXInMap = int(centerX / 16)
         centerYInMap = int(centerY / 16)
         
         obsY = 0
-        for y in range(centerYInMap - MarioGame.tileHeight / 2, centerYInMap + MarioGame.tileHeight / 2):
+        for y in range(int(centerYInMap - MarioGame.tileHeight / 2), int(centerYInMap + MarioGame.tileHeight / 2)):
             obsX = 0
-            for x in range(centerXInMap - MarioGame.tileWidth / 2, centerXInMap + MarioGame.tileWidth / 2):
+            for x in range(int(centerXInMap - MarioGame.tileWidth / 2), int(centerXInMap + MarioGame.tileWidth / 2)):
                 currentX = x
                 if currentX < 0:
                     currentX = 0
@@ -992,7 +992,7 @@ class MarioWorld:
         return ret
 
     def getEnemiesObservation(self, centerX, centerY, detail):
-        ret = np.zeroes((MarioGame.tileWidth, MarioGame.tileHeight), dtype=int)
+        ret = np.zeros((int(MarioGame.tileWidth), int(MarioGame.tileHeight)), dtype=int)
         centerXInMap = int(centerX / 16)
         centerYInMap = int(centerY / 16)
 
@@ -1005,20 +1005,20 @@ class MarioWorld:
                     sprite.getMapY() >= 0 and\
                     sprite.getMapY() > centerYInMap - MarioGame.tileHeight / 2 and\
                     sprite.getMapY() < centerYInMap + MarioGame.tileHeight / 2:
-                obsX = sprite.getMapX() - centerXInMap + MarioGame.tileWidth / 2
-                obsY = sprite.getMapY() - centerYInMap + MarioGame.tileHeight / 2
-                ret[obsX][obsY] = MarioForwardModel.getSpriteTypeGeneralization(sprite.type, detail)
+                obsX = int(sprite.getMapX() - centerXInMap + MarioGame.tileWidth / 2)
+                obsY = int(sprite.getMapY() - centerYInMap + MarioGame.tileHeight / 2)
+                ret[obsX][obsY] = MarioForwardModel.getSpriteTypeGeneralization(sprite.type.value, detail)
         return ret
 
     def getMergedObservation(self, centerX, centerY, sceneDetail, enemiesDetail):
-        ret = np.zeroes((MarioGame.tileWidth, MarioGame.tileHeight), dtype=int)
+        ret = np.zeros((int(MarioGame.tileWidth), int(MarioGame.tileHeight)), dtype=int)
         centerXInMap = int(centerX / 16)
         centerYInMap = int(centerY / 16)
 
         obsY = 0
-        for y in range(int(centerYInMap - MarioGame.tileHeight / 2), centerYInMap + MarioGame.tileHeight / 2):
+        for y in range(int(centerYInMap - MarioGame.tileHeight / 2), int(centerYInMap + MarioGame.tileHeight / 2)):
             obsX = 0
-            for x in range(int(centerXInMap - MarioGame.tileWidth / 2), centerXInMap + MarioGame.tileWidth / 2):
+            for x in range(int(centerXInMap - MarioGame.tileWidth / 2), int(centerXInMap + MarioGame.tileWidth / 2)):
                 currentX = x
                 if currentX < 0:
                     currentX = 0
@@ -1042,9 +1042,9 @@ class MarioWorld:
                     sprite.getMapY() >= 0 and\
                     sprite.getMapY() > centerYInMap - MarioGame.tileHeight / 2 and\
                     sprite.getMapY() < centerYInMap + MarioGame.tileHeight / 2:
-                obsX = sprite.getMapX() - centerXInMap + MarioGame.tileWidth / 2
-                obsY = sprite.getMapY() - centerYInMap + MarioGame.tileHeight / 2
-                tmp = MarioForwardModel.getSpriteTypeGeneralization(sprite.type, enemiesDetail)
+                obsX = int(sprite.getMapX() - centerXInMap + MarioGame.tileWidth / 2)
+                obsY = int(sprite.getMapY() - centerYInMap + MarioGame.tileHeight / 2)
+                tmp = MarioForwardModel.getSpriteTypeGeneralization(sprite.type.value, enemiesDetail)
                 if tmp != SpriteType.NONE.value:
                     ret[obsX][obsY] = tmp
         return ret
