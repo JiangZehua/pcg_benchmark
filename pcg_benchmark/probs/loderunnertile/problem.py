@@ -28,10 +28,29 @@ class LodeRunnerProblem(Problem):
         lvls = [os.path.join(os.path.dirname(__file__) + "/data/", f) for f in os.listdir(os.path.dirname(__file__) + "/data/") if "level" in f]
         for lvl in lvls:
             exp = play_loderunner(read_loderunner(lvl))
-            self._walking += get_horz_histogram(exp, [1])
-            self._hanging += get_horz_histogram(exp, [3])
-            self._climbing += get_vert_histogram(exp, [2])
-            self._falling += get_vert_histogram(exp, [4])
+            walking_hist = get_horz_histogram(exp, [1])
+            hanging_hist = get_horz_histogram(exp, [3])
+            climbing_hist = get_vert_histogram(exp, [2])
+            falling_hist = get_vert_histogram(exp, [4])
+
+            # Resize histograms to match current level dimensions
+            if len(walking_hist) != self._width:
+                walking_hist = np.interp(np.linspace(0, len(walking_hist)-1, self._width),
+                                        np.arange(len(walking_hist)), walking_hist)
+            if len(hanging_hist) != self._width:
+                hanging_hist = np.interp(np.linspace(0, len(hanging_hist)-1, self._width),
+                                        np.arange(len(hanging_hist)), hanging_hist)
+            if len(climbing_hist) != self._height + 1:
+                climbing_hist = np.interp(np.linspace(0, len(climbing_hist)-1, self._height + 1),
+                                         np.arange(len(climbing_hist)), climbing_hist)
+            if len(falling_hist) != self._height + 1:
+                falling_hist = np.interp(np.linspace(0, len(falling_hist)-1, self._height + 1),
+                                        np.arange(len(falling_hist)), falling_hist)
+
+            self._walking += walking_hist
+            self._hanging += hanging_hist
+            self._climbing += climbing_hist
+            self._falling += falling_hist
         self._walking = np.array(self._walking) / sum(self._walking)
         self._hanging = np.array(self._hanging) / sum(self._hanging)
         self._climbing = np.array(self._climbing) / sum(self._climbing)

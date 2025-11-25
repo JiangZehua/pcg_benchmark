@@ -23,7 +23,11 @@ class BinaryProblem(Problem):
 
         self._cerror = max(int(self._target * 0.25), 1)
         self._content_space = ArraySpace((self._height, self._width), IntegerSpace(2))
-        self._control_space = DictionarySpace({"path": IntegerSpace(self._target + self._cerror, int(self._width * self._height / 2))})
+
+        # Ensure min_value doesn't exceed max_value for IntegerSpace
+        max_path = int(self._width * self._height / 2)
+        min_path = min(self._target + self._cerror, max_path - 1)
+        self._control_space = DictionarySpace({"path": IntegerSpace(min_path, max_path)})
         
 
     def info(self, content):
