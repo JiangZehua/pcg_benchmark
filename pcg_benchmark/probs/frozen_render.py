@@ -47,17 +47,19 @@ def create_frozen_overlay(image, frozen_mask, scale=16, opacity=0.3):
     result = Image.alpha_composite(image, overlay)
     return result
 
-def render_with_frozen_tiles(problem, content, info=None, scale=16, frozen_opacity=0.3):
+def render_with_frozen_tiles(problem, content, info=None, scale=16, frozen_opacity=0.3, frozen_mask=None):
     """
     Render content with frozen tiles highlighted in blue.
-    
+
     Parameters:
         problem: Problem instance
         content: Content to render
         info: Optional info dictionary (for optimization)
         scale: Scale factor for rendering
         frozen_opacity: Opacity of frozen tile overlay (0.0 to 1.0)
-        
+        frozen_mask: Optional boolean mask indicating frozen tiles. If provided,
+                     this takes precedence over problem's _content_space.
+
     Returns:
         PIL Image with frozen tiles overlaid
     """
@@ -69,18 +71,21 @@ def render_with_frozen_tiles(problem, content, info=None, scale=16, frozen_opaci
             base_image = problem.render(content)
     else:
         raise ValueError("Problem does not have a render method")
-    
-    # Check if the problem has frozen tiles
-    if hasattr(problem, '_content_space') and isinstance(problem._content_space, FrozenArraySpace):
-        frozen_mask = problem._content_space.get_frozen_mask()
-        
-        # If there are frozen tiles, add the overlay
-        if frozen_mask.any():
-            # Account for padding in the rendered image
-            # Many problems add 1-pixel padding around the content
-            padded_mask = np.pad(frozen_mask, 1, constant_values=False)
-            base_image = create_frozen_overlay(base_image, padded_mask, scale, frozen_opacity)
-    
+
+    # Get frozen mask - prefer explicit parameter, then check problem's content space
+    mask_to_use = None
+    if frozen_mask is not None:
+        mask_to_use = np.array(frozen_mask) if not isinstance(frozen_mask, np.ndarray) else frozen_mask
+    elif hasattr(problem, '_content_space') and isinstance(problem._content_space, FrozenArraySpace):
+        mask_to_use = problem._content_space.get_frozen_mask()
+
+    # If there are frozen tiles, add the overlay
+    if mask_to_use is not None and mask_to_use.any():
+        # Account for padding in the rendered image
+        # Many problems add 1-pixel padding around the content
+        padded_mask = np.pad(mask_to_use, 1, constant_values=False)
+        base_image = create_frozen_overlay(base_image, padded_mask, scale, frozen_opacity)
+
     return base_image
 
 def create_frozen_visualization_legend(scale=16):
