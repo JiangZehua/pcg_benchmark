@@ -130,6 +130,16 @@ class MarioProblem(Problem):
                     actions.append(_convert_action(ae.getActions()))
                     locations.append([ae.getMarioX(), ae.getMarioY()])
 
+            game_events = []
+            for ge in result.getGameEvents():
+                game_events.append({
+                    "type": ge.getEventType(),
+                    "param": ge.getEventParam(),
+                    "mario_x": ge.getMarioX(),
+                    "mario_y": ge.getMarioY(),
+                    "time": ge.getTime(),
+                })
+
             return {
                 "width": len(content[0]),
                 "height": len(content),
@@ -144,6 +154,7 @@ class MarioProblem(Problem):
                 "actions": actions,
                 "locations": locations,
                 "enemy_frames": result.getEnemyFrames(),
+                "game_events": game_events,
             }
         else:
             return {
@@ -160,6 +171,7 @@ class MarioProblem(Problem):
                 "actions": [],
                 "locations": [],
                 "enemy_frames": [],
+                "game_events": [],
             }
 
     def quality(self, info):
