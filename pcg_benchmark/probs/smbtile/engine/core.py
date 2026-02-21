@@ -121,8 +121,9 @@ class MarioGame:
 
         gameEvents = []
         agentEvents = []
+        enemyFrames = []
         while self._world.gameStatus == GameStatus.RUNNING:
-            if not self.pause: 
+            if not self.pause:
                 # get actions
                 MarioForwardModel.maxMoves = MarioGame.maxMoves
                 actions = self._agent.getActions(MarioForwardModel(self._world.clone()))
@@ -135,7 +136,13 @@ class MarioGame:
                 agentEvents.append(MarioAgentEvent(actions, self._world.mario.x,
                         self._world.mario.y, int(self._world.mario.isLarge) + int(self._world.mario.isFire),
                         self._world.mario.onGround, self._world.currentTick))
-        return MarioResult(self._world, gameEvents, agentEvents)
+                # capture per-frame enemy positions
+                frame_enemies = []
+                for sprite in self._world._sprites:
+                    if isinstance(sprite, (Enemy, BulletBill, FlowerEnemy)):
+                        frame_enemies.append([sprite.type.value, sprite.x, sprite.y])
+                enemyFrames.append(frame_enemies)
+        return MarioResult(self._world, gameEvents, agentEvents, enemyFrames)
     
 class MarioForwardModel: 
     OBS_SCENE_SHIFT = 16
@@ -418,10 +425,11 @@ class MarioForwardModel:
         return self._world.getSceneObservation(self._world.mario.x, self._world.mario.y, detail)
     
 class MarioResult:
-    def __init__(self, world, gameEvents, agentEvents):
+    def __init__(self, world, gameEvents, agentEvents, enemyFrames=None):
        self._world = world
        self._gameEvents = gameEvents
        self._agentEvents = agentEvents
+       self._enemyFrames = enemyFrames or []
 
     def getGameStatus(self):
         return self._world.gameStatus
@@ -445,6 +453,9 @@ class MarioResult:
 
     def getAgentEvents(self):
         return self._agentEvents
+
+    def getEnemyFrames(self):
+        return self._enemyFrames
 
     def getKillsTotal(self):
         kills = 0

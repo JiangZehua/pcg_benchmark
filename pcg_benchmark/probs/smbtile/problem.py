@@ -1,6 +1,6 @@
 from pcg_benchmark.probs import Problem
 from pcg_benchmark.probs.utils import get_range_reward, get_num_tiles
-from pcg_benchmark.probs.smb.engine import runLevel
+from pcg_benchmark.probs.smbtile.engine import runLevel
 from pcg_benchmark.spaces import ArraySpace, IntegerSpace, DictionarySpace
 import numpy as np
 import math
@@ -129,7 +129,7 @@ class MarioProblem(Problem):
                 for ae in result.getAgentEvents():
                     actions.append(_convert_action(ae.getActions()))
                     locations.append([ae.getMarioX(), ae.getMarioY()])
-            
+
             return {
                 "width": len(content[0]),
                 "height": len(content),
@@ -143,6 +143,7 @@ class MarioProblem(Problem):
                 "jumps": result.getNumJumps(),
                 "actions": actions,
                 "locations": locations,
+                "enemy_frames": result.getEnemyFrames(),
             }
         else:
             return {
@@ -157,7 +158,8 @@ class MarioProblem(Problem):
                 "coins": 0.0,
                 "jumps": 0.0,
                 "actions": [],
-                "locations": []
+                "locations": [],
+                "enemy_frames": [],
             }
 
     def quality(self, info):
