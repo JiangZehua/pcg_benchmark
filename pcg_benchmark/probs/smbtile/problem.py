@@ -115,8 +115,9 @@ class MarioProblem(Problem):
         hnoise[hnoise < 0] = 0
         empty = get_num_tiles(np.array(content), [0]) / (len(content[0]) * len(content))
         fenemies = _caculate_fenemies(content, self._symbols)
-        
-        if empty > self._empty and tube_issue == 0 and hnoise.sum() == 0 and fenemies < self._fenemies:
+
+        # if empty > self._empty and tube_issue == 0 and hnoise.sum() == 0 and fenemies < self._fenemies:
+        if empty > self._empty and tube_issue == 0 and fenemies < self._fenemies:
             result = runLevel(lvl, "heuristic", self._timer, self._solver)
             actions = []
             locations = []
