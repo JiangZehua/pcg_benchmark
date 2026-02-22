@@ -98,7 +98,7 @@ class Enemy(MarioSprite):
         if xMarioD > -self.width * 2 - 4 and xMarioD < self.width * 2 + 4:
             if yMarioD > -self.height and yMarioD < self.world.mario.height:
                 if self.type != SpriteType.SPIKY and type != SpriteType.SPIKY_WINGED and type != SpriteType.ENEMY_FLOWER and\
-                        self.world.mario.ya > 0 and yMarioD <= 0 and (not self.world.mario.onGround or not self.world.mario.wasOnGround):
+                        self.world.mario.ya > 0 and yMarioD <= 0 and (yMarioD < 0 or self.world.mario._inJumpArc) and (not self.world.mario.onGround or not self.world.mario.wasOnGround):
                     self.world.mario.stomp(self)
                     if self._winged:
                         self._winged = False
@@ -347,6 +347,7 @@ class Mario(MarioSprite):
         self._invulnerableTime = 0
         self._marioFrameSpeed = 0
         self._xJumpStart = -100
+        self._inJumpArc = False
 
     def clone(self):
         sprite = Mario(self.x - 8, self.y - 15)
@@ -371,6 +372,7 @@ class Mario(MarioSprite):
         sprite._invulnerableTime = self._invulnerableTime
         sprite.jumpTime = self.jumpTime
         sprite._xJumpStart = self._xJumpStart
+        sprite._inJumpArc = self._inJumpArc
         return sprite
 
     def _move(self, xa, ya):
@@ -466,6 +468,7 @@ class Mario(MarioSprite):
         if self._invulnerableTime > 0:
             self._invulnerableTime -= 1
         self.wasOnGround = self.onGround
+        self._inJumpArc = self._xJumpStart >= 0
 
         sideWaysSpeed = [0.6, 1.2][self.actions[MarioActions.SPEED.value]]
 
@@ -562,6 +565,7 @@ class Mario(MarioSprite):
         self.ya = self.jumpTime * self._yJumpSpeed
         self.onGround = False
         self._invulnerableTime = 1
+        self._xJumpStart = self.x
 
     def stomp(self, shell):
         if not self.alive:
@@ -575,6 +579,7 @@ class Mario(MarioSprite):
         self.ya = self.jumpTime * self._yJumpSpeed
         self.onGround = False
         self._invulnerableTime = 1
+        self._xJumpStart = self.x
 
     def getHurt(self):
         if self._invulnerableTime > 0 or not self.alive:
@@ -636,6 +641,7 @@ class Mario(MarioSprite):
         self.ya = self.jumpTime * self._yJumpSpeed
         self.onGround = False
         self._invulnerableTime = 1
+        self._xJumpStart = self.x
 
     def getMarioType(self):
         if self.isFire:
@@ -690,7 +696,7 @@ class BulletBill(MarioSprite):
         yMarioD = self.world.mario.y - self.y
         if xMarioD > -16 and xMarioD < 16:
             if yMarioD > -self.height and yMarioD < self.world.mario.height:
-                if self.world.mario.ya > 0 and yMarioD <= 0 and (not self.world.mario.onGround or not self.world.mario.wasOnGround):
+                if self.world.mario.ya > 0 and yMarioD <= 0 and (yMarioD < 0 or self.world.mario._inJumpArc) and (not self.world.mario.onGround or not self.world.mario.wasOnGround):
                     self.world.mario.stomp(self)
                     self.world.removeSprite(self)
                 else:
@@ -1258,7 +1264,7 @@ class Shell(MarioSprite):
         yMarioD = self.world.mario.y - self.y
         if xMarioD > -16 and xMarioD < 16:
             if yMarioD > -self.height and yMarioD < self.world.mario.height:
-                if self.world.mario.ya > 0 and yMarioD <= 0 and (not self.world.mario.onGround or not self.world.mario.wasOnGround):
+                if self.world.mario.ya > 0 and yMarioD <= 0 and (yMarioD < 0 or self.world.mario._inJumpArc) and (not self.world.mario.onGround or not self.world.mario.wasOnGround):
                     self.world.mario.stomp(self)
                     if self.facing != 0:
                         self.xa = 0
