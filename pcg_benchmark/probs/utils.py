@@ -1,3 +1,5 @@
+from collections import deque
+
 import numpy as np
 
 """
@@ -34,18 +36,24 @@ Returns:
 def _run_dijkstra(x, y, map, passable_values):
     dijkstra_map = np.full((map.shape[0], map.shape[1]),-1)
     visited_map = np.zeros((map.shape[0], map.shape[1]))
-    queue = [(x, y, 0)]
-    while len(queue) > 0:
-        (cx,cy,cd) = queue.pop(0)
-        if map[cy][cx] not in passable_values or (dijkstra_map[cy][cx] >= 0 and dijkstra_map[cy][cx] <= cd):
-            continue
-        visited_map[cy][cx] = 1
-        dijkstra_map[cy][cx] = cd
+    passable_set = set(passable_values)
+    if map[y][x] not in passable_set:
+        return dijkstra_map, visited_map
+    dijkstra_map[y][x] = 0
+    visited_map[y][x] = 1
+    queue = deque([(x, y)])
+    while queue:
+        cx, cy = queue.popleft()
+        cd = dijkstra_map[cy][cx]
         for (dx,dy) in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
             nx,ny=cx+dx,cy+dy
-            if nx < 0 or ny < 0 or nx >= len(map[0]) or ny >= len(map):
+            if nx < 0 or ny < 0 or nx >= map.shape[1] or ny >= map.shape[0]:
                 continue
-            queue.append((nx, ny, cd + 1))
+            if dijkstra_map[ny][nx] >= 0 or map[ny][nx] not in passable_set:
+                continue
+            dijkstra_map[ny][nx] = cd + 1
+            visited_map[ny][nx] = 1
+            queue.append((nx, ny))
     return dijkstra_map, visited_map
 
 """
@@ -94,18 +102,21 @@ Returns:
     int: number of tiles for the flood fill
 """
 def _flood_fill(x, y, color_map, map, color_index, passable_values):
-    num_tiles = 0
-    queue = [(x, y)]
-    while len(queue) > 0:
-        (cx, cy) = queue.pop(0)
-        if color_map[cy][cx] != -1 or map[cy][cx] not in passable_values:
-            continue
-        num_tiles += 1
-        color_map[cy][cx] = color_index
+    if color_map[y][x] != -1 or map[y][x] not in passable_values:
+        return 0
+    num_tiles = 1
+    color_map[y][x] = color_index
+    queue = deque([(x, y)])
+    while queue:
+        cx, cy = queue.popleft()
         for (dx,dy) in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
             nx,ny=cx+dx,cy+dy
-            if nx < 0 or ny < 0 or nx >= len(map[0]) or ny >= len(map):
+            if nx < 0 or ny < 0 or nx >= map.shape[1] or ny >= map.shape[0]:
                 continue
+            if color_map[ny][nx] != -1 or map[ny][nx] not in passable_values:
+                continue
+            color_map[ny][nx] = color_index
+            num_tiles += 1
             queue.append((nx, ny))
     return num_tiles
 
