@@ -81,6 +81,7 @@ class MarioProblem(Problem):
         self._fenemies = kwargs.get("fenemies", 0.1)
         self._solver = kwargs.get("solver", 100 / (int(self._width < 30) + 1))
         self._timer = kwargs.get("timer", math.ceil(self._width / 10))
+        self._agent = kwargs.get("agent", "auto")  # "auto" (heuristic then astar) or "astar"
         self._diversity = kwargs.get("diversity", 0.4)
 
         self._content_space = ArraySpace((self._height, self._width), IntegerSpace(10))
@@ -97,6 +98,7 @@ class MarioProblem(Problem):
         self._diversity = kwargs.get("diversity", 0.4)
         self._solver = kwargs.get("solver", self._solver)
         self._timer = kwargs.get("timer", self._timer)
+        self._agent = kwargs.get("agent", self._agent)
 
     def info(self, content):
         lvl = _convert2str(content, self._symbols)
@@ -118,18 +120,18 @@ class MarioProblem(Problem):
 
         # if empty > self._empty and tube_issue == 0 and hnoise.sum() == 0 and fenemies < self._fenemies:
         if empty > self._empty and tube_issue == 0 and fenemies < self._fenemies:
-            result = runLevel(lvl, "heuristic", self._timer, self._solver)
+            if self._agent == "astar":
+                result = runLevel(lvl, "astar", self._timer, self._solver)
+            else:
+                # auto: try heuristic first, fall back to astar
+                result = runLevel(lvl, "heuristic", self._timer, self._solver)
+                if result.getCompletionPercentage() < 1.0:
+                    result = runLevel(lvl, "astar", self._timer, self._solver)
             actions = []
             locations = []
-            if result.getCompletionPercentage() >= 1.0:
-                for ae in result.getAgentEvents():
-                    actions.append(_convert_action(ae.getActions()))
-                    locations.append([ae.getMarioX(), ae.getMarioY()])
-            else:
-                result = runLevel(lvl, "astar", self._timer, self._solver)
-                for ae in result.getAgentEvents():
-                    actions.append(_convert_action(ae.getActions()))
-                    locations.append([ae.getMarioX(), ae.getMarioY()])
+            for ae in result.getAgentEvents():
+                actions.append(_convert_action(ae.getActions()))
+                locations.append([ae.getMarioX(), ae.getMarioY()])
 
             game_events = []
             for ge in result.getGameEvents():
