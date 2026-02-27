@@ -18,16 +18,16 @@ class BinaryProblem(Problem):
         Problem.__init__(self, **kwargs)
         self._width = kwargs.get("width")
         self._height = kwargs.get("height")
-        self._target = kwargs.get("path", self._width + self._height)
+        self._max_path = int(np.ceil(self._width * self._height / 2) + max(self._width, self._height))
+        self._target = kwargs.get("path", self._max_path // 2)
         self._diversity = kwargs.get("diversity", 0.4)
 
-        self._cerror = max(int(self._target * 0.25), 1)
+        self._cerror = max(int(self._target * 0.1), 1)
         self._content_space = ArraySpace((self._height, self._width), IntegerSpace(2))
 
         # Ensure min_value doesn't exceed max_value for IntegerSpace
-        max_path = int(self._width * self._height / 2)
-        min_path = min(self._target + self._cerror, max_path - 1)
-        self._control_space = DictionarySpace({"path": IntegerSpace(min_path, max_path)})
+        min_path = min(self._target + self._cerror, self._max_path - 1)
+        self._control_space = DictionarySpace({"path": IntegerSpace(min_path, self._max_path)})
         
 
     def info(self, content):
@@ -43,7 +43,7 @@ class BinaryProblem(Problem):
 
     def quality(self, info):
         number_regions = get_range_reward(info["regions"], 0, 1, 1, self._width * self._height / 10)
-        longest = get_range_reward(info["path"], 0, self._target, self._width * self._height)
+        longest = get_range_reward(info["path"], 0, self._target, self._max_path)
         return (number_regions + longest) / 2
     
     def diversity(self, info1, info2):
@@ -51,7 +51,8 @@ class BinaryProblem(Problem):
         return get_range_reward(hamming, 0, self._diversity * self._width * self._height, self._width * self._height)
     
     def controlability(self, info, control):
-        longest = get_range_reward(info["path"], 0, control["path"]-self._cerror, control["path"]+self._cerror, self._width * self._height)
+        cerror = max(int(control["path"] * 0.1), 1)
+        longest = get_range_reward(info["path"], 0, control["path"]-cerror, control["path"]+cerror, self._max_path)
         return longest
     
     def render(self, content, info=None):

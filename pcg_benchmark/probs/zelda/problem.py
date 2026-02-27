@@ -27,7 +27,7 @@ class ZeldaProblem(Problem):
         self._erange = max(int(self._enemies * 0.25), 1)
 
         self._target = kwargs.get("sol_length", self._width + self._height)
-        self._cerror = max(int(self._target / 2 * 0.25), 1)
+        self._cerror = max(int(self._target / 2 * 0.1), 1)
 
         self._content_space = ArraySpace((self._height, self._width), IntegerSpace(6))
         self._control_space = DictionarySpace({
@@ -103,8 +103,10 @@ class ZeldaProblem(Problem):
         return get_range_reward(1 - ratio, 0, self._diversity, 1.0)
     
     def controlability(self, info, control):
-        player_key = get_range_reward(info["player_key"], 0, control["player_key"]-self._cerror, control["player_key"]+self._cerror, int(self._width * self._height / 4))
-        key_door = get_range_reward(info["key_door"], 0, control["key_door"]-self._cerror, control["key_door"]+self._cerror, int(self._width * self._height / 4))
+        pk_cerror = max(int(control["player_key"] * 0.1), 1)
+        kd_cerror = max(int(control["key_door"] * 0.1), 1)
+        player_key = get_range_reward(info["player_key"], 0, control["player_key"]-pk_cerror, control["player_key"]+pk_cerror, int(self._width * self._height / 4))
+        key_door = get_range_reward(info["key_door"], 0, control["key_door"]-kd_cerror, control["key_door"]+kd_cerror, int(self._width * self._height / 4))
         return (player_key + key_door) / 2
     
     def render(self, content, info=None):

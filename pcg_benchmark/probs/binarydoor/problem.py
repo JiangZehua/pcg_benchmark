@@ -26,16 +26,16 @@ class BinaryDoorProblem(Problem):
         Problem.__init__(self, **kwargs)
         self._width = kwargs.get("width")
         self._height = kwargs.get("height")
-        self._target = kwargs.get("door_path", self._width + self._height)
+        self._max_path = int(np.ceil(self._width * self._height / 2) + max(self._width, self._height))
+        self._target = kwargs.get("door_path", self._max_path // 2)
         self._door_seed = kwargs.get("door_seed", 42)
         self._diversity = kwargs.get("diversity", 0.4)
 
-        self._cerror = max(int(self._target * 0.25), 1)
+        self._cerror = max(int(self._target * 0.1), 1)
         self._content_space = ArraySpace((self._height, self._width), IntegerSpace(2))
 
-        max_path = int(self._width * self._height / 2)
-        min_path = min(self._target + self._cerror, max_path - 1)
-        self._control_space = DictionarySpace({"door_path": IntegerSpace(min_path, max_path)})
+        min_path = min(self._target + self._cerror, self._max_path - 1)
+        self._control_space = DictionarySpace({"door_path": IntegerSpace(min_path, self._max_path)})
 
         # Generate deterministic door positions
         self._door1, self._door2 = self._generate_doors()
@@ -161,7 +161,7 @@ class BinaryDoorProblem(Problem):
 
     def quality(self, info):
         number_regions = get_range_reward(info["regions"], 0, 1, 1, self._width * self._height / 10)
-        door_path_reward = get_range_reward(info["door_path"], 0, self._target, self._width * self._height)
+        door_path_reward = get_range_reward(info["door_path"], 0, self._target, self._max_path)
         return (number_regions + door_path_reward) / 2
 
     def diversity(self, info1, info2):
@@ -169,11 +169,12 @@ class BinaryDoorProblem(Problem):
         return get_range_reward(hamming, 0, self._diversity * self._width * self._height, self._width * self._height)
 
     def controlability(self, info, control):
+        cerror = max(int(control["door_path"] * 0.1), 1)
         door_path = get_range_reward(
             info["door_path"], 0,
-            control["door_path"] - self._cerror,
-            control["door_path"] + self._cerror,
-            self._width * self._height,
+            control["door_path"] - cerror,
+            control["door_path"] + cerror,
+            self._max_path,
         )
         return door_path
 
