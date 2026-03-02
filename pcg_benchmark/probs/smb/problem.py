@@ -174,12 +174,12 @@ class MarioProblem(Problem):
         total = 0
         visited_1 = np.zeros((len(self._slices[0]), info1["width"]))
         for loc in info1["locations"]:
-            x, y = max(0, min(15, int(loc[0] / 16))), max(0, min(15, int(loc[1] / 16)))
+            x, y = max(0, min(info1["width"] - 1, int(loc[0] / 16))), max(0, min(len(self._slices[0]) - 1, int(loc[1] / 16)))
             visited_1[y][x] += 1
             total += 1
         visited_2 = np.zeros((len(self._slices[0]), info2["width"]))
         for loc in info2["locations"]:
-            x, y = max(0, min(15, int(loc[0] / 16))), max(0, min(15, int(loc[1] / 16)))
+            x, y = max(0, min(info2["width"] - 1, int(loc[0] / 16))), max(0, min(len(self._slices[0]) - 1, int(loc[1] / 16)))
             visited_2[y][x] += 1
             total += 1
         if total == 0:
