@@ -71,7 +71,14 @@ class MarioProblem(Problem):
 
         self._hnoise = []
         with open(os.path.dirname(__file__) + "/noise.txt") as f:
-            self._hnoise = np.array([float(v) for v in f.readlines()[0].strip().split(',')])
+            base_hnoise = np.array([float(v) for v in f.readlines()[0].strip().split(',')])
+        # Tile/pad baseline to match custom height (noise.txt is for default 16 rows)
+        height = kwargs.get("height", 16)
+        if height <= len(base_hnoise):
+            self._hnoise = base_hnoise[:height]
+        else:
+            # Pad with zeros for extra sky rows at the top
+            self._hnoise = np.concatenate([np.zeros(height - len(base_hnoise)), base_hnoise])
 
         self._symbols = ['-', 'X', '#', 'S', 'Q', 't', 'o', 'g', 'k', 'y']
         
@@ -185,7 +192,7 @@ class MarioProblem(Problem):
         if empty >= 1 and tube >= 1:
             for n in info["noise"]:
                 noise += get_range_reward(n, 0, 0, 0, 1)
-        noise /= 16
+        noise /= self._height
         return (tube + empty + noise + fenemeis + 4 * info["complete"]) / 8.0
 
     def diversity(self, info1, info2):
